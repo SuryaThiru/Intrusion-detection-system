@@ -1,12 +1,14 @@
 library(readr)
 library(dplyr)
 
-files <- list.files('data')
+datadir <- "../data"
+
+files <- list.files(datadir)
 files
 
 # load all files to a dataframe (tibble)
 dfs <- files %>% (function(filenames) {
-    paste("data", filenames, sep = "/")
+    paste(datadir, filenames, sep = "/")
   }) %>% lapply(read_csv)
 
 # check if all files have the same features

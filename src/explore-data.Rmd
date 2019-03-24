@@ -1,0 +1,54 @@
+---
+title: "Explore IDS data"
+author: "Surya K"
+date: "March 24, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Load the combined CICIDS 2017 dataset
+
+We majorly use the tidyverse packages
+
+```{r message=FALSE, warning=FALSE}
+library(readr)
+
+datadir <- "../data/cicids17.csv"
+ids_data <- read_csv(datadir)
+```
+
+## Basic info about the dataset
+
+```{r echo=FALSE}
+cat("Dimension of the data : ", dim(ids_data), "\n\n")
+
+types <- sapply(ids_data, class)
+cat("Data Types of columns count: ", "\n")
+table(types)
+
+```
+
+### Labels in the dataset
+
+```{r echo=FALSE}
+labels <- ids_data$Label
+cat("Number of labels: ", length(unique(labels)), "\n")
+
+print("Labels")
+print(unique(labels))
+```
+
+## Visualizations
+
+```{r echo=FALSE, fig.height=3, fig.width=15}
+library(ggplot2)
+
+qplot(Label, data = ids_data, main = "Distribution across labels")
+
+```
+
+
