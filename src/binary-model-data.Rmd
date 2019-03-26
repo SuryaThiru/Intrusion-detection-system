@@ -1,0 +1,93 @@
+---
+title: "Model the IDS data"
+output: html_notebook
+---
+
+
+# Model data
+
+## Load, sample and split dataset
+
+```{r}
+library(readr)
+library(dplyr)
+
+datadir <- "../data/cicids17_clean.csv"
+ids_data <- read_csv(datadir)
+dim(ids_data)
+```
+
+## Load required ML packages
+
+```{r}
+library(caret)
+library(FNN) # for knn implementations
+library(ModelMetrics)
+set.seed(42)
+```
+
+
+
+## Model as a binary classification problem
+
+```{r}
+ids_data$BinLabel <- factor(if_else(ids_data$Label == "BENIGN", 0, 1))
+# subsample 50% of the data (memory restrictions)
+sub_idx <- createDataPartition(ids_data$Label, p = 0.6, list = FALSE) 
+ids_data <- ids_data[sub_idx,]
+```
+
+
+```{r}
+# Shuffle dataset
+# ids_data <- ids_data[sample(nrow(ids_data), nrow(ids_data)), ]
+
+# create stratified train-test splits
+in_train <- createDataPartition(ids_data$Label, p = 0.75, list = FALSE)
+train <- ids_data[in_train,]
+test <- ids_data[-in_train,]
+rm(ids_data)
+```
+
+
+## Baseline Model
+
+Let's use all the features and build a baseline model using simple linear regression
+
+```{r}
+model <- glm(BinLabel ~ . -Label, data = train)
+```
+
+Evaluate the performance of the model
+
+```{r}
+f1 <- f1Score(train$BinLabel, predict(model, train))
+cat("\nF1 score of the model on training set : ", f1)
+
+f1 <- f1Score(test$BinLabel, predict(model, test))
+cat("\nF1 score of the model on testing set : ", f1)
+```
+
+Confusion matrix
+
+```{r}
+confusionMatrix(predict(model, test), test$BinLabel)
+```
+
+
+## KNN model
+
+```{r}
+feats <- !(names(train) %in% c("BinLabel", "Label"))
+test_pred <- knn(train[,feats], test[,feats], train$BinLabel,
+              k = 10, algorithm = "kd_tree")
+```
+
+Evaluate the performance of the model
+
+```{r}
+f1 <- f1Score(test$BinLabel, test_pred)
+cat("\nF1 score of the model on testing set : ", f1)
+```
+
+We get a perfect score

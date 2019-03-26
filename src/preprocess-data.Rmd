@@ -1,0 +1,95 @@
+---
+title: "Preprocess the IDS data"
+output: html_notebook
+---
+
+# Prepare data
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+library(readr)
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(ggplot2)
+
+datadir <- "../data/cicids17.csv"
+ids_data <- read_csv(datadir)
+```
+
+## Check for and handle null/inf values
+
+```{r}
+# get count of nulls
+ids_null <- map(ids_data, ~sum(is.na(.)))
+
+# identify cols with null
+col_with_null <- which(ids_null > 0)
+print("Cols with null")
+print(ids_null[col_with_null])
+```
+
+We find that `flow bytes` is the only column with missing values
+Let's take a closer look at the column
+
+```{r}
+null_col <- ids_data[col_with_null]
+summary(null_col)
+```
+
+Let's try to find what type of data points has null values
+
+```{r}
+null_row <- which(is.na(null_col))
+null_df <- ids_data %>% slice(null_row)
+
+qplot(Label, data = null_df, main = "Distribution of rows with null values across labels")
+
+ids_data %>% select(Label) %>% filter(Label == "DoS Hulk") %>% count(Label) %>% print
+```
+
+Since the no of observations with nulls are significantly lower we drop the rows with null values
+
+```{r}
+ids_data <- ids_data %>% drop_na()
+write_csv(ids_data, "../data/cicids17_clean.csv")  # save current state
+```
+
+## Handling inf values
+
+```{r}
+datadir <- "../data/cicids17_clean.csv"
+ids_data <- read_csv(datadir)
+```
+
+Get infinity count
+
+```{r}
+# get count of inf
+ids_inf <- map(ids_data, ~sum(is.infinite(.)))
+
+# identify cols with inf
+col_with_inf <- which(ids_inf > 0)
+print("Cols with inf")
+print(ids_inf[col_with_inf])
+```
+
+```{r}
+inf_col <- ids_data[col_with_inf]
+summary(inf_col)
+```
+
+Let's try to find what type of data points has inf values
+
+```{r}
+inf_row <- which(is.infinite(inf_col[[2]]))
+inf_df <- ids_data %>% slice(inf_row)
+
+qplot(Label, data = inf_df, main = "Distribution of rows with inf values across labels")
+```
+
+Dropping all the rows with infinite values
+
+```{r}
+clean_df <- ids_data %>% filter(is.finite(`Flow Bytes/s`) & is.finite(`Flow Packets/s`))
+write_csv(clean_df, "../data/cicids17_clean.csv")
+```
