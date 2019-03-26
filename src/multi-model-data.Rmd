@@ -1,0 +1,90 @@
+---
+title: "Model IDS Data"
+output: html_notebook
+---
+
+
+# Model data
+
+## Load, sample and split dataset
+
+```{r}
+library(readr)
+library(dplyr)
+
+datadir <- "../data/cicids17_clean.csv"
+ids_data <- read_csv(datadir)
+dim(ids_data)
+```
+
+```{r}
+# subsample 50% of the data (memory restrictions)
+sub_idx <- createDataPartition(ids_data$Label, p = 0.5, list = FALSE) 
+ids_data <- ids_data[sub_idx,]
+```
+
+## Load required ML packages
+
+```{r}
+library(caret)
+library(FNN) # for knn implementations
+library(Metrics)
+library(xgboost)
+set.seed(42)
+```
+
+
+
+## Model as a multi classification problem
+
+
+```{r}
+# create stratified train-test splits
+in_train <- createDataPartition(ids_data$Label, p = 0.75, list = FALSE)
+train <- ids_data[in_train,]
+test <- ids_data[-in_train,]
+rm(ids_data)
+```
+
+
+
+
+## KNN model
+
+```{r}
+feats <- !(names(train) %in% c("Label"))
+test_pred <- knn(train[,feats], test[,feats], factor(train$Label),
+              k = 30, algorithm = "kd_tree")
+```
+
+Evaluate the performance of the model
+
+```{r}
+f1 <- f1(factor(test$Label), test_pred)
+cat("\nF1 score of the model on testing set : ", f1)
+```
+
+Confusion matrix
+
+```{r}
+table(factor(test$Label), test_pred)
+```
+
+## XGBoost classifier
+
+```{r}
+feats <- !(names(train) %in% c("Label"))
+gc()
+model_xg <- xgboost(as.matrix(train[,feats]), as.numeric(factor(train$Label, labels = 0:14)) - 1, nthread = 4, nrounds = 20, objective = "multi:softmax", verbose = 2, num_class=length(levels(factor(train$Label))))
+```
+
+```{r}
+train_pred <- predict(model_xg, as.matrix(train[,feats]))
+f1 <- f1(as.numeric(factor(train$Label, labels = 0:14)) - 1, train_pred)
+cat("\nF1 score of the model on training set : ", f1)
+
+test_pred <- predict(model_xg, as.matrix(test[,feats]))
+f1 <- f1(as.numeric(factor(test$Label, labels = 0:14)) - 1, test_pred)
+cat("\nF1 score of the model on testing set : ", f1)
+```
+
