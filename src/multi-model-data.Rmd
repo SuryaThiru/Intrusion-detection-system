@@ -88,3 +88,15 @@ f1 <- f1(as.numeric(factor(test$Label, labels = 0:14)) - 1, test_pred)
 cat("\nF1 score of the model on testing set : ", f1)
 ```
 
+Feature importances
+
+```{r}
+importance_matrix <- xgb.importance(model = model_xg)
+xgb.plot.importance(importance_matrix = importance_matrix)
+```
+
+Save data for further analysis
+
+```{r}
+saveRDS(importance_matrix[,], file="xgb_feat_importance.rds")
+```

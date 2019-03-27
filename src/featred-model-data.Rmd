@@ -1,0 +1,82 @@
+---
+title: "Feature reduction and modelling"
+output: html_notebook
+---
+
+We use dimensionality reduction to reduce memory overload, computation time
+
+
+### Load packages and data
+
+```{r}
+library(caret)
+library(FNN) # for knn implementations
+library(Metrics)
+library(e1071)
+library(xgboost)
+set.seed(42)
+```
+
+
+```{r}
+library(readr)
+library(dplyr)
+
+datadir <- "../data/cicids17_clean.csv"
+ids_data <- read_csv(datadir)
+dim(ids_data)
+```
+
+
+## Based on xgboost feature importance
+
+```{r}
+feat_imp <- readRDS("xgb_feat_importance.rds")
+dim(feat_imp)
+```
+
+We select the first m features
+
+```{r}
+m <- 30
+features <- feat_imp$Feature[1:m]
+features
+```
+
+
+
+## KNN model
+
+```{r}
+feats <- !(names(train) %in% c("Label"))
+test_pred <- knn(train[,features], test[,features], factor(train$Label),
+              k = 30, algorithm = "kd_tree")
+```
+
+Evaluate the performance of the model
+
+```{r}
+f1 <- f1(factor(test$Label), test_pred)
+cat("\nF1 score of the model on testing set : ", f1)
+```
+
+Same performance on the reduced data shows reducing dimensionality didn't affect the model
+
+
+## SVM model
+
+lesser dimension allows us to use SVM with good performance
+
+```{r}
+model_svm <- svm(as.factor(Label) ~ ., data = train[,c(features, "Label")])
+```
+
+
+```{r}
+train_pred <- predict(model_svm)
+```
+
+
+## Based on Principal component Analysis
+
+
