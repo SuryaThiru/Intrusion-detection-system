@@ -81,7 +81,8 @@ model_xg <- xgboost(as.matrix(train[,feats]), as.numeric(factor(train$Label, lab
 ```{r}
 train_pred <- predict(model_xg, as.matrix(train[,feats]))
 f1 <- f1(as.numeric(factor(train$Label, labels = 0:14)) - 1, train_pred)
-cat("\nF1 score of the model on training set : ", f1)
+cat("\nF1 score of the model on trai
+    ning set : ", f1)
 
 test_pred <- predict(model_xg, as.matrix(test[,feats]))
 f1 <- f1(as.numeric(factor(test$Label, labels = 0:14)) - 1, test_pred)

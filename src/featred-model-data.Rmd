@@ -14,6 +14,7 @@ library(FNN) # for knn implementations
 library(Metrics)
 library(e1071)
 library(xgboost)
+library(speedglm)
 set.seed(42)
 ```
 
@@ -63,20 +64,90 @@ cat("\nF1 score of the model on testing set : ", f1)
 Same performance on the reduced data shows reducing dimensionality didn't affect the model
 
 
-## SVM model
-
-lesser dimension allows us to use SVM with good performance
-
-```{r}
-model_svm <- svm(as.factor(Label) ~ ., data = train[,c(features, "Label")])
-```
-
-
-```{r}
-train_pred <- predict(model_svm)
-```
-
-
 ## Based on Principal component Analysis
 
+The complexity of the data can be represented by its principal components
 
+```{r}
+prin_cmp <- princomp(train[,feats], scale. = TRUE)
+summary(prin_cmp)
+```
+
+There are multiple ways to choose our principal components
+1. Select components upto cumulative proportion of 80%
+2. Use scree plot to identify the component at which the line flattens
+
+```{r}
+plot(prin_cmp, type = "lines", main = "Scree plot of PCs")
+```
+
+We see the line flattens around the 9th component. Let's select the first 10 components for prediciton and observe the performance on an algorithm
+
+```{r}
+train_pca <- princomp(train[,feats], scale. = TRUE)
+test_pca <- princomp(test[,feats], scale. = TRUE)
+n_comp <- 6
+```
+
+## XGBoost classifier
+
+```{r}
+model_xg <- xgboost(as.matrix(train_pca$scores[,1:n_comp]), as.numeric(factor(train$Label, labels = 0:14)) - 1, nthread = 4, nrounds = 20, objective = "multi:softmax", verbose = 2, num_class=length(levels(factor(train$Label))))
+```
+
+```{r}
+train_pred <- predict(model_xg, as.matrix(train_pca$scores[,1:n_comp]))
+f1 <- f1(as.numeric(factor(train$Label, labels = 0:14)) - 1, train_pred)
+cat("\nF1 score of the model on training set : ", f1)
+
+test_pred <- predict(model_xg, as.matrix(test_pca$scores[,1:n_comp]))
+f1 <- f1(as.numeric(factor(test$Label, labels = 0:14)) - 1, test_pred)
+cat("\nF1 score of the model on testing set : ", f1)
+```
+  
+Poor performance with ensemble trees
+
+## ANN model
+
+```{r}
+library(h2o)
+h2o.init()
+```
+
+make h2o compatible
+
+```{r}
+dat <- train_pca$scores[,1:n_comp]
+train_pca_df <- cbind(as.data.frame(dat), factor(train$Label))
+colnames(train_pca_df) <- c(colnames(dat), "Label")
+
+dat <- test_pca$scores[,1:n_comp]
+test_pca_df <- cbind(as.data.frame(dat), factor(test$Label))
+colnames(test_pca_df) <- c(colnames(dat), "Label")
+
+train_hf <- as.h2o(train_pca_df)
+test_hf <- as.h2o(test_pca_df)
+```
+
+```{r}
+model_dl <- h2o.deeplearning(x = 1:n_comp, y = "Label", training_frame = train_hf, validation_frame = test_hf, seed = 42, fast_mode = TRUE, epochs = 10, balance_classes = TRUE)
+```
+
+Evaluate the model
+
+```{r}
+h2o.performance(model_dl, train = T)
+```
+
+
+```{r}
+train_pred <- h2o.predict(model_dl, train_hf)
+f1 <- f1(train$Label, train_pred$predict)
+cat("\nF1 score of the model on training set : ", f1)
+
+test_pred <- h2o.predict(model_dl, test_hf)
+f1 <- f1(test$Label, test_pred$predict)
+cat("\nF1 score of the model on testing set : ", f1)
+```
+
+Poor performance with feed forward neural networks. Here we note that the neural network can't handle the imbalance in the data set which greatly affects the overall performance
