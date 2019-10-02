@@ -146,11 +146,10 @@ performed poorly on the reduced data.
 | TEST          | 0.5          |
 
 
-## CONCLUSION AND FUTURE WORKS
+## CONCLUSION AND FUTURE WORK
 
 Results from the analysis of the CICIDS17 dataset shows that it is an excellent
 dataset to test and simulate IDS performance. It is evident from the results that
 multi-class classification with feature selection results in a high accuracy and reduces
 the detection time.
-For future works, researchers should study the possibility of applying
-optimisation techniques to further improve accuracy.
+For future work, researchers should study the possibility of applying techniques to use a model that can work in real time.
