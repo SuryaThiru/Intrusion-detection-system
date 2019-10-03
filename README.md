@@ -60,8 +60,7 @@ We use the CICIDS17 dataset for this project. The dataset ​ contains benign an
 the most up-to-date common attacks, which resembles real-world data. It also
 includes network traffic analysis results.
 
-
-![alt text](https://github.com/ramaneswaran/Intrusion-detection-system/blob/master/data_info.png "Dataset")
+![This link to the CICIDS17 dataset](https://www.unb.ca/cic/datasets/ids-2017.html)
 
 ## SOLUTION
 
