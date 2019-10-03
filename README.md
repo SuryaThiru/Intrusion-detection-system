@@ -61,7 +61,7 @@ the most up-to-date common attacks, which resembles real-world data. It also
 includes network traffic analysis results.
 
 
-[This link to the CICIDS17 dataset](https://www.unb.ca/cic/datasets/ids-2017.html)
+[This is the link to the CICIDS17 dataset](https://www.unb.ca/cic/datasets/ids-2017.html)
 
 
 ## SOLUTION
