@@ -2,8 +2,6 @@
 
 ## INTRODUCTION
 
-
-
 Intrusion detection plays a vital role in the network defense process by aiming
 security administrators in forewarning them about malicious behaviors such as
 intrusions, attacks, and malware. IDS is a mandatory line of defense for protecting
@@ -109,7 +107,7 @@ performed poorly on the reduced data.
 
 | KNN           |               |
 | ------------- |  -------------|
-| TRAIN         | 1             | 
+| TRAIN         | 1             |
 | TEST          | 1             |
 
 
@@ -119,7 +117,7 @@ performed poorly on the reduced data.
 
 | XGBOOST       |               |
 | ------------- |  -------------|
-| TRAIN         | 0.97          | 
+| TRAIN         | 0.97          |
 | TEST          | 0.93          |
 
 
@@ -131,19 +129,19 @@ performed poorly on the reduced data.
 
 | XGBOOST WITH IMPORTANT FEATURES |    |
 | ------------- |  -------------|
-| TRAIN         | 0.97          | 
+| TRAIN         | 0.97          |
 | TEST          | 0.93          |
 
 
 | KNN  WITH IMPORTANT FEATURES         |  |
 | ------------- |  -------------|
-| TRAIN         | 0.92             | 
+| TRAIN         | 0.92             |
 | TEST          | 0.89            |
 
 
 | XGBOOST WITH PCA |    |
 | ------------- |  -------------|
-| TRAIN         | 0.92          | 
+| TRAIN         | 0.92          |
 | TEST          | 0.5          |
 
 
@@ -154,3 +152,5 @@ dataset to test and simulate IDS performance. It is evident from the results tha
 multi-class classification with feature selection results in a high accuracy and reduces
 the detection time.
 For future work, researchers should study the possibility of applying techniques to use a model that can work in real time.
+
+![image-that-doesnt-help](reports/report.png)
